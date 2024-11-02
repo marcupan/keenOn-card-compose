@@ -1,0 +1,22 @@
+[package]
+name = "compose-grpc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.0"
+tonic = "0.12.3"
+prost = "0.13.3"
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.40.0", features = ["full"] }
+image = "0.25.4"
+base64 = "0.22.1"
+imageproc = "0.25.0"
+ab_glyph = "0.2.28"
+tonic-reflection = "0.12.3"
+tonic-build = "0.12.3"
+dotenv = "0.15.0"
+
+[build-dependencies]
+tonic-build = "0.12.3"

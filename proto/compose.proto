@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package compose;
+
+service ComposeService {
+  rpc ComposeImage (ComposeRequest) returns (ComposeResponse);
+}
+
+message ComposeRequest {
+  string image_base64 = 1;
+  string text = 2;
+}
+
+message ComposeResponse {
+  bytes composed_image = 1;
+}
