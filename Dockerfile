@@ -40,7 +40,7 @@ COPY --from=builder /app/target/release/card_compose /app/card_compose
 ENV RUST_LOG=info
 
 # Expose the application port
-EXPOSE 4000
+EXPOSE 50052
 
 # Command to run in production mode
 CMD ["./card_compose"]
