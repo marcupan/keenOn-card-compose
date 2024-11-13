@@ -1,46 +1,27 @@
-# Base image for building the application
 FROM rust:slim AS builder
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the Cargo.toml and source code
-COPY Cargo.toml Cargo.lock ./
+RUN apt-get update && apt-get install -y protobuf-compiler
+
+COPY Cargo.toml Cargo.lock build.rs ./
+COPY proto ./proto
 COPY src ./src
 
-# Build the application for production
-RUN cargo build --release
+RUN echo "Checking /app before build" && ls -la /app
 
-# Stage for development
-FROM rust:slim AS development
+RUN cargo build --release || (echo "Build failed" && exit 1)
 
-# Set the working directory
-WORKDIR /app
+RUN echo "Checking /app/target/release after build" && ls -la /app/target/release
 
-# Install dependencies for development
-RUN rustup component add clippy rustfmt
-
-# Copy the source code and build output from the builder stage
-COPY --from=builder /app/target/release/card_compose /app/card_compose
-COPY src ./src
-
-# Command to run in development mode
-CMD ["cargo", "run"]
-
-# Final stage for production
 FROM rust:slim AS production
 
-# Set the working directory
 WORKDIR /app
 
-# Copy the binary from the builder stage
 COPY --from=builder /app/target/release/card_compose /app/card_compose
 
-# Set environment variables for production
 ENV RUST_LOG=info
 
-# Expose the application port
 EXPOSE 50052
 
-# Command to run in production mode
 CMD ["./card_compose"]
