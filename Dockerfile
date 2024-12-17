@@ -1,44 +1,53 @@
-# Stage 1: Build Stage
+# Build Stage
 FROM rust:slim AS builder
 
 WORKDIR /app
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y protobuf-compiler pkg-config libssl-dev
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    protobuf-compiler pkg-config libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy over manifest files and build dependencies first to cache layers
+# Copy Cargo files and fetch dependencies
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY proto ./proto
+RUN cargo fetch
 
-# Fetch dependencies (build step caching)
-RUN cargo build --release --locked
-
-# Copy the source code and build the project
+# Copy source and build release
 COPY src ./src
 RUN cargo build --release
 
-# Stage 2: Production Stage
-FROM debian:buster-slim AS production
-
-WORKDIR /app
-
-# Copy the build artifact from the builder
-COPY --from=builder /app/target/release/card_compose /app/card_compose
-
-ENV RUST_LOG=info
-EXPOSE 50052
-
-CMD ["./card_compose"]
-
-# Stage 3: Development Stage
+# Development Stage
 FROM rust:slim AS development
 
 WORKDIR /app
 
-# Install development dependencies
-RUN apt-get update && apt-get install -y protobuf-compiler pkg-config libssl-dev
+# Install dependencies for development
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    protobuf-compiler pkg-config libssl-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the entire project for development
+# Copy all files for development
 COPY . .
 
+# Expose development port
+EXPOSE 50052
+
 CMD ["cargo", "run"]
+
+# Production Stage
+FROM debian:bookworm-slim AS production
+
+WORKDIR /app
+
+# Use non-root user
+RUN addgroup --system app && adduser --system --ingroup app app
+USER app
+
+# Copy build artifact from builder
+COPY --from=builder /app/target/release/card_compose /app/card_compose
+
+# Expose production port
+EXPOSE 50052
+
+CMD ["./card_compose"]
