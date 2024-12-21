@@ -45,8 +45,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = Config::from_env();
 
-    info!("API Key: {}", config.api_key);
-
     let addr = format!("0.0.0.0:{}", config.port).parse()?;
     let compose_service = MyComposeService;
 

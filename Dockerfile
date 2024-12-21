@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     protobuf-compiler pkg-config libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy Cargo files and fetch dependencies
+# Copy Cargo files and fetch dependencies (cache dependencies layer)
 COPY Cargo.toml Cargo.lock build.rs ./
 COPY proto ./proto
 RUN cargo fetch
@@ -33,6 +33,7 @@ COPY . .
 # Expose development port
 EXPOSE 50052
 
+# Use debug binary for development
 CMD ["cargo", "run"]
 
 # Production Stage
@@ -40,7 +41,7 @@ FROM debian:bookworm-slim AS production
 
 WORKDIR /app
 
-# Use non-root user
+# Use non-root user for security
 RUN addgroup --system app && adduser --system --ingroup app app
 USER app
 
