@@ -16,3 +16,7 @@ The Image Composition Service takes translated text and overlays it on an image 
 - **Rust**: Core language for processing and composition.
 - **gRPC**: Communication protocol for interoperability.
 - **Docker**: Ensures containerized deployment.
+
+---
+
+> **Note:** This project is not production-ready but is intended as a demonstration of my learning progress in backend development.
