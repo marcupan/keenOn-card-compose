@@ -31,8 +31,8 @@ fn draw_centered_text(
 ) {
     let max_width = CARD_WIDTH - 2 * HORIZONTAL_PADDING;
 
-    // Split the text into words
     let words: Vec<&str> = text.split_whitespace().collect();
+
     let mut lines = Vec::new();
     let mut current_line = String::new();
 
@@ -64,6 +64,7 @@ fn draw_centered_text(
 
     for (i, line) in lines.iter().enumerate() {
         let width = measure_text_width(font, &line, scale);
+
         let line_x = x as f32 - width / 2.0;
         let line_y = start_y + i as f32 * line_height;
 
@@ -80,18 +81,16 @@ fn draw_centered_text(
 }
 
 pub fn compose_image_with_text(image_base64: &str, text: &str) -> Result<Vec<u8>, Box<dyn Error>> {
-    // Decode base64 image
     let image_data = STANDARD
         .decode(image_base64)
         .map_err(|e| format!("Failed to decode base64: {}", e))?;
+
     let img =
         image::load_from_memory(&image_data).map_err(|e| format!("Failed to load image: {}", e))?;
 
-    // Create white background image
     let mut composed_image =
         RgbaImage::from_pixel(CARD_WIDTH, CARD_HEIGHT, Rgba([255, 255, 255, 255]));
 
-    // Overlay the base64 image on top of the white background
     image::imageops::overlay(
         &mut composed_image,
         &img.to_rgba8(),
@@ -99,14 +98,11 @@ pub fn compose_image_with_text(image_base64: &str, text: &str) -> Result<Vec<u8>
         24,
     );
 
-    // Load the font
     let font_data = include_bytes!("../assets/DejaVuSans.ttf");
     let font = FontArc::try_from_slice(font_data)?;
 
-    // Set scale
     let scale = PxScale { x: 20.0, y: 20.0 };
 
-    // Draw text on the image
     draw_centered_text(
         &mut composed_image,
         Rgba([0, 0, 0, 255]),
@@ -117,9 +113,9 @@ pub fn compose_image_with_text(image_base64: &str, text: &str) -> Result<Vec<u8>
         text,
     );
 
-    // Convert to bytes
     let mut result = Vec::new();
     let mut cursor = Cursor::new(&mut result);
+
     PngEncoder::new(&mut cursor).write_image(
         &composed_image,
         composed_image.width(),
@@ -145,7 +141,6 @@ mod tests {
         let text = "Test";
         let width = measure_text_width(&font, text, scale);
 
-        // Assuming a width is greater than 0
         assert!(width > 0.0);
     }
 
@@ -169,7 +164,6 @@ mod tests {
             text,
         );
 
-        // Check that some pixels are not white (indicating text was drawn)
         let white = Rgba([255, 255, 255, 255]);
         let text_drawn = image.pixels().any(|&pixel| pixel != white);
         assert!(text_drawn);
@@ -177,7 +171,6 @@ mod tests {
 
     #[test]
     fn test_compose_image_with_text() {
-        // Use a valid base64-encoded string of a simple 1x1 pixel PNG image (black)
         let base64_image = "iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAApgAAAKYB3X3/OAAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAANCSURBVEiJtZZPbBtFFMZ/M7ubXdtdb1xSFyeilBapySVU8h8OoFaooFSqiihIVIpQBKci6KEg9Q6H9kovIHoCIVQJJCKE1ENFjnAgcaSGC6rEnxBwA04Tx43t2FnvDAfjkNibxgHxnWb2e/u992bee7tCa00YFsffekFY+nUzFtjW0LrvjRXrCDIAaPLlW0nHL0SsZtVoaF98mLrx3pdhOqLtYPHChahZcYYO7KvPFxvRl5XPp1sN3adWiD1ZAqD6XYK1b/dvE5IWryTt2udLFedwc1+9kLp+vbbpoDh+6TklxBeAi9TL0taeWpdmZzQDry0AcO+jQ12RyohqqoYoo8RDwJrU+qXkjWtfi8Xxt58BdQuwQs9qC/afLwCw8tnQbqYAPsgxE1S6F3EAIXux2oQFKm0ihMsOF71dHYx+f3NND68ghCu1YIoePPQN1pGRABkJ6Bus96CutRZMydTl+TvuiRW1m3n0eDl0vRPcEysqdXn+jsQPsrHMquGeXEaY4Yk4wxWcY5V/9scqOMOVUFthatyTy8QyqwZ+kDURKoMWxNKr2EeqVKcTNOajqKoBgOE28U4tdQl5p5bwCw7BWquaZSzAPlwjlithJtp3pTImSqQRrb2Z8PHGigD4RZuNX6JYj6wj7O4TFLbCO/Mn/m8R+h6rYSUb3ekokRY6f/YukArN979jcW+V/S8g0eT/N3VN3kTqWbQ428m9/8k0P/1aIhF36PccEl6EhOcAUCrXKZXXWS3XKd2vc/TRBG9O5ELC17MmWubD2nKhUKZa26Ba2+D3P+4/MNCFwg59oWVeYhkzgN/JDR8deKBoD7Y+ljEjGZ0sosXVTvbc6RHirr2reNy1OXd6pJsQ+gqjk8VWFYmHrwBzW/n+uMPFiRwHB2I7ih8ciHFxIkd/3Omk5tCDV1t+2nNu5sxxpDFNx+huNhVT3/zMDz8usXC3ddaHBj1GHj/As08fwTS7Kt1HBTmyN29vdwAw+/wbwLVOJ3uAD1wi/dUH7Qei66PfyuRj4Ik9is+hglfbkbfR3cnZm7chlUWLdwmprtCohX4HUtlOcQjLYCu+fzGJH2QRKvP3UNz8bWk1qMxjGTOMThZ3kvgLI5AzFfo379UAAAAASUVORK5CYII=";
         let text = "Sample Text";
 
@@ -190,7 +183,6 @@ mod tests {
         assert!(result.is_ok());
         let image_data = result.unwrap();
 
-        // Check that the output is a non-empty byte vector
         assert!(!image_data.is_empty(), "Image data should not be empty");
     }
 }
