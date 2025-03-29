@@ -91,10 +91,11 @@ pub fn compose_image_with_text(image_base64: &str, text: &str) -> Result<Vec<u8>
     let mut composed_image =
         RgbaImage::from_pixel(CARD_WIDTH, CARD_HEIGHT, Rgba([255, 255, 255, 255]));
 
+    let overlay_x = (CARD_WIDTH as i32 / 2) - (img.width() as i32 / 2);
     image::imageops::overlay(
         &mut composed_image,
         &img.to_rgba8(),
-        (CARD_WIDTH / 2 - img.width() / 2) as i64,
+        overlay_x as i64,
         24,
     );
 
