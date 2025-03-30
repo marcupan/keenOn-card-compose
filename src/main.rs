@@ -24,15 +24,22 @@ impl ComposeService for MyComposeService {
     ) -> Result<Response<ComposeResponse>, Status> {
         let req = request.into_inner();
 
-        match services::image_service::compose_image_with_text(&req.image_base64, &req.text) {
+        match services::image_service::compose_image_with_text(
+            &req.image_base64,
+            &req.text,
+            &req.sentences,
+        ) {
             Ok(composed_image) => {
                 info!("Successfully composed image");
                 let reply = ComposeResponse { composed_image };
                 Ok(Response::new(reply))
             }
-            Err(e) => {
-                error!("Failed to compose image: {}", e);
-                Err(Status::internal(format!("Failed to compose image: {}", e)))
+            Err(err) => {
+                error!("Failed to compose image: {}", err);
+                Err(Status::internal(format!(
+                    "Failed to compose image: {}",
+                    err
+                )))
             }
         }
     }

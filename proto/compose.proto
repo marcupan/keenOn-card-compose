@@ -9,6 +9,7 @@ service ComposeService {
 message ComposeRequest {
   string image_base64 = 1;
   string text = 2;
+  repeated string sentences = 3;
 }
 
 message ComposeResponse {
