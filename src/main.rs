@@ -9,8 +9,10 @@ use tonic_reflection::server::Builder;
 
 mod config;
 mod services;
+
 mod compose {
     tonic::include_proto!("compose");
+
     pub const FILE_DESCRIPTOR_SET: &[u8] = include_bytes!("../target/descriptor/compose.bin");
 }
 
@@ -24,18 +26,24 @@ impl ComposeService for MyComposeService {
     ) -> Result<Response<ComposeResponse>, Status> {
         let req = request.into_inner();
 
-        match services::image_service::compose_image_with_text(
+        info!("Received compose request");
+
+        match services::image_service::compose_image_with_details(
             &req.image_base64,
-            &req.text,
-            &req.sentences,
+            &req.translation,
+            &req.individual_translations,
+            &req.example_sentences,
         ) {
             Ok(composed_image) => {
                 info!("Successfully composed image");
+
                 let reply = ComposeResponse { composed_image };
+
                 Ok(Response::new(reply))
             }
             Err(err) => {
                 error!("Failed to compose image: {}", err);
+
                 Err(Status::internal(format!(
                     "Failed to compose image: {}",
                     err
@@ -48,18 +56,23 @@ impl ComposeService for MyComposeService {
 #[tokio::main(flavor = "multi_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv().ok();
+
     env_logger::init();
 
     let config = Config::from_env();
 
-    let addr = format!("0.0.0.0:{}", config.port).parse()?;
+    let addr = format!("[::]:{}", config.port).parse()?;
     let compose_service = MyComposeService;
+
+    info!("Registering reflection service...");
 
     let reflection_service = Builder::configure()
         .register_encoded_file_descriptor_set(compose::FILE_DESCRIPTOR_SET)
-        .build_v1()?;
+        .build_v1()
+        .map_err(|err| format!("Failed to build reflection service: {}", err))?;
 
     info!("Starting server on address: {}", addr);
+
     Server::builder()
         .add_service(ComposeServiceServer::new(compose_service))
         .add_service(reflection_service)
