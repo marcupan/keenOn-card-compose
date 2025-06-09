@@ -15,6 +15,7 @@ const HORIZONTAL_PADDING: u32 = 20;
 const VERTICAL_PADDING: u32 = 15;
 const IMAGE_BOTTOM_MARGIN: u32 = 10;
 
+#[allow(dead_code)]
 struct TextMetrics {
     lines: Vec<String>,
     line_height: f32,
@@ -37,7 +38,7 @@ fn calculate_and_draw_centered_text(
 
     let mut lines = Vec::new();
     let mut current_line = String::new();
-    let space_width = scaled_font.h_advance(scaled_font.glyph_id(' '));
+    let _space_width = scaled_font.h_advance(scaled_font.glyph_id(' '));
 
     for word in text.split_whitespace() {
         let word_width: f32 = word
