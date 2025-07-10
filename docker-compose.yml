@@ -1,0 +1,91 @@
+services:
+  app:
+    build:
+      context: .
+      target: production
+    container_name: keenon-card-compose
+    ports:
+      - '50052:50052'
+    env_file:
+      - .env
+    environment:
+      RUST_LOG: info
+      ENCRYPTION_KEY_FILE: /run/secrets/encryption_key
+      OPENAI_API_KEY_FILE: /run/secrets/openai_api_key
+    secrets:
+      - encryption_key
+      - openai_api_key
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:50052/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - backend
+      - frontend
+
+  nginx:
+    image: nginx:alpine
+    container_name: keenon-card-compose-nginx
+    ports:
+      - '8052:80'
+      - '8053:443'
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - frontend
+
+volumes:
+  data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/data
+
+networks:
+  backend:
+    driver: bridge
+    internal: true
+  frontend:
+    driver: bridge
+
+secrets:
+  encryption_key:
+    file: ./secrets/encryption_key.txt
+  openai_api_key:
+    file: ./secrets/openai_api_key.txt
