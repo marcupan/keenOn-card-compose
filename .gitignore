@@ -1,6 +1,40 @@
+# DO NOT PUSH - IDE specific files
+# These files contain user-specific settings and should not be shared
 .idea
+.vscode
+
+# DO NOT PUSH - Rust build artifacts
+# Generated files that should be built on deployment
 /target
+**/*.rs.bk
+Cargo.lock
+# Keep Cargo.lock for binary projects, uncomment if this is a library
+# Cargo.lock
+
+# DO NOT PUSH - Environment variables
+# These files contain sensitive information like API keys and passwords
 .env
 .env.*
-*.backup.*
+!.env.example
 http-client.env.json
+
+# DO NOT PUSH - Backup files
+# Temporary backup files created during development
+*.backup.*
+*~
+*.bak
+*.swp
+
+# DO NOT PUSH - OS specific files
+# System files that should not be committed
+.DS_Store
+Thumbs.db
+
+# DO NOT PUSH - Log files
+# Log files that should not be committed
+logs/
+*.log
+
+# DO NOT PUSH - GitHub workflow files (if needed locally)
+# Remove when done with local testing
+.github
